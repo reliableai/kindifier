@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791040629293,
+      "tag": "0000_curly_leopardon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791043333734,
+      "tag": "0001_harsh_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791114029535,
+      "tag": "0002_connection_identity",
+      "breakpoints": true
+    }
+  ]
+}

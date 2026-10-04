@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.sites-runtime/
+.dev.vars
+.env
+.env.local
+.local-state/
+
+server/assets.generated.mjs
+
+# Python tooling
+.venv/
+__pycache__/
+*.py[cod]
+
+*.tgz
+
+# Private credentials and runtime data must never be committed.
+.env.*
+.openai/
+.npmrc
+.DS_Store
+*.pem
+*.key
+client_secret*.json
+credentials.json
+token.json
+*.sqlite*
+*.db
+*.db-*
+*.log
+*.zip

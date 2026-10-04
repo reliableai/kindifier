@@ -1,0 +1,57 @@
+{
+  "name": "kindifier-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test --test-timeout=60000 tests/*.test.mjs",
+    "dev": "node scripts/dev.mjs",
+    "db:generate": "drizzle-kit generate",
+    "start": "node local/cli.mjs",
+    "postinstall": "node local/print-disclosure.mjs",
+    "prepack": "npm run build",
+    "package:local": "npm pack --pack-destination dist"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "2.1.0",
+    "gpt-tokenizer": "4.0.0",
+    "html-to-text": "^9.0.5",
+    "postal-mime": "^2.5.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.5",
+    "drizzle-orm": "^0.45.3",
+    "esbuild": "^0.25.10",
+    "miniflare": "^4.20250927.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "$esbuild"
+    },
+    "sharp": "^0.35.4",
+    "undici": "^7.29.1"
+  },
+  "version": "0.2.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "kindifier": "local/cli.mjs"
+  },
+  "files": [
+    "local/",
+    "server/*.mjs",
+    "public/",
+    "drizzle/*.sql",
+    "README.md",
+    "PRIVACY.md",
+    "npm-shrinkwrap.json",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "description": "Experimental local Gmail interface that prepares kinder email using your own AI account.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reliableai/kindifier.git"
+  }
+}
