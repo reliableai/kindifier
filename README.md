@@ -2,9 +2,11 @@
 
 A kinder Gmail interface that runs on **your own computer** and opens in your browser. No Kindifier account, developer-operated backend, or developer API key is needed. Your computer connects directly to Google and your selected AI service.
 
-## Experimental open-source software
+## Source code shared for independent use
 
-Released under the [MIT License](LICENSE), including its warranty disclaimer and limitation of liability. This is experimental software, provided as is. The author makes no commitment to support, maintenance, security updates or continued availability. Third-party components retain their own licenses. No notice or license removes obligations that applicable law does not allow to be excluded.
+I am sharing experimental source code in this public repository. I am not offering to install, operate or support the software for anyone, and I am not providing a public hosted email or AI service. If you choose to use it, you download, configure and run your own copy, using your own accounts and credentials. Sharing this code creates no commitment from me to maintain it or provide updates.
+
+The code is available under the [MIT License](LICENSE), including its warranty disclaimer and limitation of liability. This is experimental software, provided as is. The author makes no commitment to support, maintenance, security updates or continued availability. Third-party components retain their own licenses. No notice or license removes obligations that applicable law does not allow to be excluded.
 
 You run the application on your own computer using your own Google and AI accounts. You are responsible for choosing what email you are authorized to share with AI providers, their API charges, and reviewing rewritten content before relying on it or sending it. AI may change meaning or omit important information. Start with non-sensitive test messages.
 

@@ -1,4 +1,6 @@
 export const disclosure=`Kindifier runs on your computer. Experimental software provided as is, without warranty or a support commitment.
+The author shares source code for independent use, with no commitment to install, operate, support or maintain it for you.
+You configure and run your own copy using your own accounts and credentials.
 Before using real mail:
 Email subjects, body text and drafts you ask to rewrite are sent over the internet to your chosen AI provider.
 OpenAI sends them to OpenAI; OpenRouter sends them to OpenRouter AND its selected model provider.
