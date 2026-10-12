@@ -55,7 +55,10 @@ async function handle(request,env){
   if(!(env.AI_API_KEY||env.OPENAI_API_KEY))throw new AppError('ai_not_configured',503);
   const {subject,body}=await jsonBody(request);const draft=checkDraft({to:'draft@example.com',subject,body});
   const hash=await digest(JSON.stringify({subject:draft.subject,body:draft.body}));
-  return json({rewrite:await rewriteEmail(env,draft.subject,draft.body),snapshot:hash});
+  const rewrite=await rewriteEmail(env,draft.subject,draft.body);
+  // A suggestion must pass the same checks as saving and sending, or using it would leave an unsendable draft.
+  try{checkDraft({to:'draft@example.com',subject:rewrite.subject,body:rewrite.body});}catch(error){throw new AppError('rewrite_not_sendable',502,{cause:error});}
+  return json({rewrite,snapshot:hash});
  }
  if(path==='/api/demo/messages'&&request.method==='GET'){
   const folder=url.searchParams.get('folder')||'inbox';

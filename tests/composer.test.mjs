@@ -49,6 +49,13 @@ test('a rewrite arriving after send lock cannot change the sent draft',async()=>
  assert.equal(ui.run('composeDraft.rewrite'),undefined);assert.equal(ui.run('composeDraft.body'),'Saved body');
 });
 
+test('a draft suggestion too long to send explains the limits and keeps the draft',async()=>{
+ const ui=await composer();
+ ui.context.fetch=async()=>new Response(JSON.stringify({error:{code:'rewrite_not_sendable'}}),{status:502});
+ await ui.run('rewriteDraft(composeDraft)');
+ assert.ok(ui.nodes.get('toast').textContent.includes('500 characters'));assert.equal(ui.run('composeDraft.body'),'Saved body');assert.equal(ui.run('composeDraft.rewrite'),undefined);
+});
+
 test('failed save-as-separate preserves the unsaved text and reload warning',async()=>{
  const ui=await composer();
  ui.context.fetch=async()=>new Response(JSON.stringify({error:{code:'service_unavailable'}}),{status:502});

@@ -7,7 +7,7 @@ import {buildMime,MESSAGE_ID_DOMAIN} from '../server/google.mjs';
 import PostalMime from 'postal-mime';
 const OWNER_ID='local-test-user';
 const key=Buffer.alloc(32,1).toString('base64');const env={TOKEN_ENCRYPTION_KEY:key};const account='owner@example.com';
-let mf,db,mock;let aiScenario='failure';
+let mf,db,mock;let aiScenario='failure';let aiOutput=null;
 const id='18aabbccddeeff00';
 const rawSubject='You are useless';const rawBody='You are an idiot. Send the plan by Friday at 3 PM.';
 const originalRaw=Buffer.from(`From: Angry Person <sender@example.com>\r\nTo: ${account}\r\nSubject: ${rawSubject}\r\nMessage-ID: <sample@example.com>\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n${rawBody}`).toString('base64url');
@@ -17,6 +17,7 @@ function mockRaw(){mockMeta();mock.get('https://gmail.googleapis.com').intercept
 before(async()=>{mock=createFetchMock();mock.disableNetConnect();mock.get('https://api.openai.com').intercept({path:'/v1/responses',method:'POST'}).reply(options=>{
  if(aiScenario==='failure')return {statusCode:503,data:{error:{message:rawBody}}};
  if(aiScenario==='incomplete')return {statusCode:200,data:{status:'incomplete',output:[{type:'message',content:[{type:'output_text',text:rawBody}]}]}};
+ if(aiScenario==='output')return {statusCode:200,data:{status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(aiOutput)}]}]}};
  // Miniflare forwards streaming request bodies; validate request serialization separately.
 
  return {statusCode:200,data:{status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({subject:'Project plan',body:'Please send the plan by Friday at 3 PM.',preview:'Plan requested by Friday at 3 PM.',is_complete:true})}]}]}};
@@ -58,6 +59,14 @@ test('retry prepares complete kind subject/body, caches encrypted output, and ne
 test('model incomplete/refused output is rejected rather than showing a partial message',async()=>{
  aiScenario='incomplete';
  const result=await request('/api/rewrite','POST',{subject:'Hello',body:'Please help.'});assert.equal(result.status,502);assert.ok(!(await result.text()).includes(rawBody));
+});
+for(const [name,output] of [['a 501-character subject',{subject:'A'.repeat(501),body:'Kind body.'}],['a subject with a line break',{subject:'Kind\nsubject',body:'Kind body.'}],['a 30,001-character body',{subject:'Kind subject',body:'B'.repeat(30001)}]])test(`a draft suggestion with ${name} is rejected because it could not be saved or sent`,async()=>{
+ aiScenario='output';aiOutput={...output,preview:'Kind preview',is_complete:true};
+ const result=await request('/api/rewrite','POST',{subject:'Hello',body:'Please help.'});assert.equal(result.status,502);assert.equal((await result.json()).error.code,'rewrite_not_sendable');
+});
+test('a draft suggestion at the draft limits is accepted',async()=>{
+ aiScenario='output';aiOutput={subject:'A'.repeat(500),body:'B'.repeat(30000),preview:'Kind preview',is_complete:true};
+ const result=await request('/api/rewrite','POST',{subject:'Hello',body:'Please help.'});assert.equal(result.status,200);assert.equal((await result.json()).rewrite.subject.length,500);
 });
 test('encrypted drafts persist, including recipient-only drafts',async()=>{
  const draftId='11111111-1111-4111-8111-111111111111';const draft={to:'colleague@example.com',subject:'',body:''};assert.equal((await request('/api/drafts/'+draftId,'PUT',draft)).status,200);const result=await(await request('/api/drafts')).json();assert.equal(result.drafts[0].to,draft.to);const row=await db.prepare('SELECT ciphertext FROM drafts WHERE id=?').bind(draftId).first();assert.ok(!row.ciphertext.includes(draft.to));
