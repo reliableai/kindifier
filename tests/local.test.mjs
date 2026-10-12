@@ -111,6 +111,21 @@ test('local draft/send ledger allows only the confirmed snapshot and never dupli
  assert.equal((await app.auth('/api/drafts/'+id,'PUT',{...draft,revision:1,body:'Late edits'})).status,409);
 });
 
+test('an expired Gmail login before sending reserves nothing, so the draft can be sent after reconnecting',async t=>{
+ const app=await local(t);await app.auth('/api/local/settings','POST',fakeSettings);
+ const valid={account:'tester@example.com',access_token:'fake-access',refresh_token:'fake-refresh',expires_at:Date.now()+3600000};
+ await saveConnection(app.env,'local-user',valid);
+ const id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';const draft={to:'self@example.com',subject:'Fictional test',body:'Test content',reply_for:null};
+ assert.equal((await app.auth('/api/drafts/'+id,'PUT',draft)).status,200);
+ await saveConnection(app.env,'local-user',{...valid,refresh_token:'revoked-refresh',expires_at:Date.now()-1000});
+ let sends=0;t.mock.method(globalThis,'fetch',async url=>{if(String(url)==='https://oauth2.googleapis.com/token')return Response.json({error:'invalid_grant'},{status:400});assert.equal(String(url),'https://gmail.googleapis.com/gmail/v1/users/me/messages/send');sends++;return Response.json({id:'sent-fictional-id'});});
+ const request={...draft,operation_id:id,is_confirmed:true};
+ const expired=await app.auth('/api/send','POST',request);assert.equal(expired.status,401);assert.equal((await expired.json()).error.code,'gmail_reconnect_required');assert.equal(sends,0);
+ await saveConnection(app.env,'local-user',valid);
+ const reloaded=await(await app.auth('/api/drafts')).json();assert.equal(reloaded.drafts.find(saved=>saved.id===id).is_send_locked,false);
+ assert.equal((await app.auth('/api/send','POST',request)).status,200);assert.equal(sends,1);
+});
+
 test('disconnect in progress blocks a late OAuth callback from recreating a connection',async t=>{
  const app=await local(t);await app.auth('/api/local/settings','POST',fakeSettings);
  await saveConnection(app.env,'local-user',{account:'tester@example.com',access_token:'fake',refresh_token:'fake',expires_at:Date.now()+3600000});

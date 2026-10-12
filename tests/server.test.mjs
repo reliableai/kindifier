@@ -74,7 +74,7 @@ test('uncertain send is locked, not retried, survives reload, and can be reconci
  const operation='33333333-3333-4333-8333-333333333333',draft={to:'colleague@example.com',subject:'Confirmed subject',body:'Confirmed body.'};
  await request('/api/drafts/'+operation,'PUT',draft);
  mock.get('https://gmail.googleapis.com').intercept({path:'/gmail/v1/users/me/messages/send',method:'POST'}).reply(503,{error:'provider response lost'});
- const result=await request('/api/send','POST',{...draft,operation_id:operation,is_confirmed:true});assert.equal(result.status,502);
+ const result=await request('/api/send','POST',{...draft,operation_id:operation,is_confirmed:true});assert.equal(result.status,502);assert.equal((await result.json()).error.code,'send_outcome_unknown');
  const second=await(await request('/api/send','POST',{...draft,operation_id:operation,is_confirmed:true})).json();assert.equal(second.status,'uncertain');
  const reloaded=await(await request('/api/drafts')).json();assert.equal(reloaded.drafts.find(d=>d.id===operation).is_send_locked,true);
  mock.get('https://gmail.googleapis.com').intercept({path:'/gmail/v1/users/me/messages?'+new URLSearchParams({q:`in:sent rfc822msgid:${operation}@${MESSAGE_ID_DOMAIN}`,maxResults:'2'})}).reply(200,{messages:[{id:'sent-message'}]});

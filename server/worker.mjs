@@ -134,10 +134,13 @@ async function handle(request,env){
   if(!saved||await digest(JSON.stringify(checkDraft(await decrypt(env,saved.ciphertext,`${user}:${session.account}:draft:${id}`))))!==hash)throw new AppError('draft_conflict',409);
   // Reserve before any external effect. A duplicate operation never sends again.
   await reserveSend(env,user,session,id,hash,saved.revision);
-  const message=await gmail(session,'messages/send',{method:'POST',body:JSON.stringify({raw:buildMime(session.account,draft,id,reply,messageIdDomain(env,session.account)),...(reply.thread_id?{threadId:reply.thread_id}:{})})});
-  if(!message.id)throw new AppError('send_outcome_unknown',502);
-  await env.DB.prepare("UPDATE sends SET status='sent',gmail_id=? WHERE user_id=? AND account=? AND id=?").bind(message.id,user,session.account,id).run();
-  return json({status:'sent',gmail_id:message.id});
+  // Once reserved, Gmail may have accepted the email even if this request fails, so every failure is reported as an unknown outcome.
+  try{
+   const message=await gmail(session,'messages/send',{method:'POST',body:JSON.stringify({raw:buildMime(session.account,draft,id,reply,messageIdDomain(env,session.account)),...(reply.thread_id?{threadId:reply.thread_id}:{})})});
+   if(!message.id)throw new AppError('gmail_send_id_missing',502);
+   await env.DB.prepare("UPDATE sends SET status='sent',gmail_id=? WHERE user_id=? AND account=? AND id=?").bind(message.id,user,session.account,id).run();
+   return json({status:'sent',gmail_id:message.id});
+  }catch(error){throw new AppError('send_outcome_unknown',502,{cause:error});}
  }
  const sendCheck=path.match(/^\/api\/sends\/([a-f0-9-]+)$/);
  if(sendCheck&&request.method==='POST'){

@@ -57,16 +57,18 @@ test('failed save-as-separate preserves the unsaved text and reload warning',asy
  assert.notEqual(ui.run('composeDraft.id'),ui.run('saved.id'));assert.equal(ui.run('drafts.get(composeDraft.id).body'),'Saved body');assert.equal(ui.is_unload_warned(),true);
 });
 
-for(const code of ['draft_conflict','service_unavailable'])test(`send confirmation preserves its snapshot and handles ${code}`,async()=>{
+// Only a lost response or a send the server already reserved can have reached Gmail; every other failure unlocks the draft.
+for(const [code,is_locked] of [['draft_conflict',false],['gmail_reconnect_required',false],['service_unavailable',false],['send_outcome_unknown',true],['send_already_started',true],[null,true]])test(`send confirmation preserves its snapshot and handles ${code||'a lost response'}`,async()=>{
  const ui=await composer();let sent;
  ui.context.fetch=async(path,options)=>{
   if(path.startsWith('/api/drafts/'))return new Response(JSON.stringify({revision:2}));
-  sent=JSON.parse(options.body);return new Response(JSON.stringify({error:{code}}),{status:code==='draft_conflict'?409:502});
+  sent=JSON.parse(options.body);if(!code)throw new TypeError('Failed to fetch');
+  return new Response(JSON.stringify({error:{code}}),{status:code==='draft_conflict'||code==='send_already_started'?409:code==='gmail_reconnect_required'?401:502});
  };
  await ui.run('reviewSend(composeDraft)');
  await ui.run("$('confirmation').returnValue='send';$('confirmation').onclose()");
  assert.equal(sent.to,'friend@example.com');assert.equal(sent.subject,'Saved subject');assert.equal(sent.body,'Saved body');assert.equal(sent.is_confirmed,true);
- assert.equal(ui.run('composeDraft.is_send_locked'),code!=='draft_conflict');
+ assert.equal(ui.run('composeDraft.is_send_locked'),is_locked);assert.equal(ui.run('composeDraft.send_status'),is_locked?'uncertain':null);
  assert.equal(ui.run('composeDraft.is_conflicted'),code==='draft_conflict');
  if(code==='draft_conflict'){assert.equal(ui.run('composeDraft.is_saved'),false);assert.equal(ui.is_unload_warned(),true);}
 });
