@@ -1,0 +1,12 @@
+{
+ "manifest_version": 3,
+ "name": "Kindifier (prototype)",
+ "version": "0.0.1",
+ "description": "Shows a kinder version of each Gmail message, rewritten on this computer by Chrome's built-in Gemini Nano.",
+ "minimum_chrome_version": "138",
+ "permissions": ["sidePanel"],
+ "background": {"service_worker": "background.js"},
+ "action": {"default_title": "Open Kindifier"},
+ "side_panel": {"default_path": "panel.html"},
+ "content_scripts": [{"matches": ["https://mail.google.com/*"], "js": ["gmail.js"], "css": ["gmail.css"], "run_at": "document_idle"}]
+}

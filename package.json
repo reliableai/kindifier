@@ -46,9 +46,10 @@
     "README.md",
     "PRIVACY.md",
     "npm-shrinkwrap.json",
+    "NOTICE",
     "LICENSE"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "description": "Experimental local Gmail interface that prepares kinder email using your own AI account.",
   "repository": {
     "type": "git",
