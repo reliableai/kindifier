@@ -1,5 +1,9 @@
 # Kindifier
 
+> [!WARNING]
+> **Personal experiment, not a product. Use entirely at your own risk.**
+> This is source code from a personal experiment. It is not released, supported or intended for distribution as a product to end users. There is no warranty, no support and no promise of fixes or updates. If you run it, you alone are responsible for the consequences. It reads your email, the local app sends email text to a third-party AI provider, and AI can change meaning or leave out important information. Check anything consequential against the original, and start with non-sensitive test messages. See [Source code shared for independent use](#source-code-shared-for-independent-use).
+
 **Read your email in a kinder tone.** Kindifier rewrites incoming Gmail messages so they read calm and respectful while keeping every fact, date, request and refusal. The original is always one click away.
 
 It comes in two forms, both running on **your own computer**. Neither needs a Kindifier account, a developer-run server or a developer API key.
@@ -12,8 +16,6 @@ It comes in two forms, both running on **your own computer**. Neither needs a Ki
 | Setup | Node.js, your own Google Cloud OAuth client, an AI API key | Desktop Chrome 138+, a one-time model download (about 4 GB) |
 | Features | Inbox, newest-20 auto-preparation, kinder drafts, replies, confirmed sending | Rewrites each message you open. Reading only. |
 | Cost | Your provider's API charges | Free |
-
-> **Experimental software, provided as is.** AI can change meaning or leave out important information. Check anything consequential against the original, and start with non-sensitive test messages.
 
 ---
 
